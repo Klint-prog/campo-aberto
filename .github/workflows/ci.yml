@@ -17,10 +17,15 @@ jobs:
         image: postgis/postgis:16-3.4
         env:
           POSTGRES_DB: campo_aberto_testing
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: campo_aberto
+          POSTGRES_PASSWORD: campo_aberto
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U campo_aberto -d campo_aberto_testing"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout repository
@@ -30,7 +35,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, intl, pdo_pgsql, redis, zip
+          extensions: bcmath, mbstring, intl, pdo_pgsql, redis, zip
           coverage: none
 
       - name: Install Composer dependencies
@@ -44,6 +49,9 @@ jobs:
 
       - name: Run database migrations
         run: php artisan migrate --force
+
+      - name: Seed foundation data
+        run: php artisan db:seed --force
 
       - name: Run test suite
         run: php artisan test
