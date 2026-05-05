@@ -96,6 +96,51 @@ class Farm extends Model
         return $this->hasMany(Attachment::class);
     }
 
+    public function animalLots(): HasMany
+    {
+        return $this->hasMany(AnimalLot::class);
+    }
+
+    public function animals(): HasMany
+    {
+        return $this->hasMany(Animal::class);
+    }
+
+    public function animalWeightRecords(): HasMany
+    {
+        return $this->hasMany(AnimalWeightRecord::class);
+    }
+
+    public function animalHealthRecords(): HasMany
+    {
+        return $this->hasMany(AnimalHealthRecord::class);
+    }
+
+    public function animalVaccinationRecords(): HasMany
+    {
+        return $this->hasMany(AnimalVaccinationRecord::class);
+    }
+
+    public function animalReproductionRecords(): HasMany
+    {
+        return $this->hasMany(AnimalReproductionRecord::class);
+    }
+
+    public function animalMovements(): HasMany
+    {
+        return $this->hasMany(AnimalMovement::class);
+    }
+
+    public function animalFeedConsumptions(): HasMany
+    {
+        return $this->hasMany(AnimalFeedConsumption::class);
+    }
+
+    public function feedStock(): HasMany
+    {
+        return $this->hasMany(FeedStock::class);
+    }
+
     public function getBoundaryGeoJsonAttribute(): ?array
     {
         if (! $this->exists) {
