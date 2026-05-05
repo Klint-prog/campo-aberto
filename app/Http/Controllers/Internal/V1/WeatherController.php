@@ -97,6 +97,8 @@ class WeatherController extends Controller
             ->where('period', 'daily')
             ->first();
 
+        $this->createWeatherAlert($tenantId, $farmId, $stored);
+
         return response()->json([
             'data' => $this->responseData($stored, $payload, false),
         ]);
@@ -123,6 +125,39 @@ class WeatherController extends Controller
         return response()->json([
             'data' => DB::table('manual_rain_records')->find($id),
         ], 201);
+    }
+
+    private function createWeatherAlert(int $tenantId, int $farmId, object $forecast): void
+    {
+        $alertId = DB::table('internal_alerts')->insertGetId([
+            'tenant_id' => $tenantId,
+            'farm_id' => $farmId,
+            'type' => 'weather',
+            'severity' => ((float) ($forecast->precipitation_mm ?? 0)) >= 20.0 ? 'warning' : 'info',
+            'title' => 'Alerta climático',
+            'message' => 'Previsão climática atualizada para a fazenda.',
+            'context' => json_encode([
+                'provider' => 'open_meteo',
+                'forecast_id' => $forecast->id,
+                'period' => $forecast->period,
+                'precipitation_mm' => $forecast->precipitation_mm,
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('notifications')->insert([
+            'tenant_id' => $tenantId,
+            'farm_id' => $farmId,
+            'internal_alert_id' => $alertId,
+            'channel' => 'internal',
+            'status' => 'pending',
+            'title' => 'Alerta climático',
+            'message' => 'Previsão climática atualizada para a fazenda.',
+            'payload' => json_encode(['alert_id' => $alertId, 'type' => 'weather']),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function responseData(object $forecast, array $payload, bool $cached): array
