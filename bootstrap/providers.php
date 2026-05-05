@@ -2,5 +2,5 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\Providers\Phase08RouteServiceProvider::class,
+    App\Providers\Phase09ProductionServiceProvider::class,
 ];
