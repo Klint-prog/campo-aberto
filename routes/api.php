@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('internal/v1')
     ->as('api.internal.v1.')
-    ->middleware(['auth:sanctum', 'tenant.scope'])
+    ->middleware(['auth', 'tenant.scope'])
     ->group(function (): void {
         Route::get('/me', MeController::class)->name('me');
         Route::get('/tenants/current', CurrentTenantController::class)->name('tenants.current');
