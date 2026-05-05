@@ -29,6 +29,7 @@ class WeatherController extends Controller
             ->where('tenant_id', $tenantId)
             ->where('farm_id', $farmId)
             ->where('provider', 'open_meteo')
+            ->where('period', 'daily')
             ->latest('fetched_at')
             ->first();
 
@@ -41,6 +42,7 @@ class WeatherController extends Controller
         $response = Http::get('https://api.open-meteo.com/v1/forecast', [
             'latitude' => $latitude,
             'longitude' => $longitude,
+            'daily' => 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
             'hourly' => 'temperature_2m,precipitation,relative_humidity_2m,wind_speed_10m,shortwave_radiation',
             'timezone' => 'America/Sao_Paulo',
         ]);
@@ -53,9 +55,10 @@ class WeatherController extends Controller
         }
 
         $payload = $response->json();
+        $daily = $payload['daily'] ?? [];
         $hourly = $payload['hourly'] ?? [];
-        $time = $hourly['time'][0] ?? now()->toDateTimeString();
-        $forecastAt = Carbon::parse($time);
+        $time = $daily['time'][0] ?? $hourly['time'][0] ?? now()->toDateString();
+        $forecastAt = Carbon::parse($time)->startOfDay();
 
         $row = [
             'tenant_id' => $tenantId,
@@ -65,11 +68,11 @@ class WeatherController extends Controller
             'longitude' => $longitude,
             'timezone' => $payload['timezone'] ?? 'America/Sao_Paulo',
             'forecast_at' => $forecastAt,
-            'period' => 'hourly',
-            'temperature_celsius' => $this->numberFrom($hourly, 'temperature_2m'),
-            'precipitation_mm' => $this->numberFrom($hourly, 'precipitation'),
+            'period' => 'daily',
+            'temperature_celsius' => $this->numberFrom($daily, 'temperature_2m_max') ?? $this->numberFrom($hourly, 'temperature_2m'),
+            'precipitation_mm' => $this->numberFrom($daily, 'precipitation_sum') ?? $this->numberFrom($hourly, 'precipitation'),
             'relative_humidity_percent' => $this->numberFrom($hourly, 'relative_humidity_2m'),
-            'wind_speed_kmh' => $this->numberFrom($hourly, 'wind_speed_10m'),
+            'wind_speed_kmh' => $this->numberFrom($daily, 'wind_speed_10m_max') ?? $this->numberFrom($hourly, 'wind_speed_10m'),
             'solar_radiation_wm2' => $this->numberFrom($hourly, 'shortwave_radiation'),
             'heat_index_celsius' => null,
             'raw_payload' => json_encode($payload),
@@ -83,7 +86,7 @@ class WeatherController extends Controller
             'farm_id' => $farmId,
             'provider' => 'open_meteo',
             'forecast_at' => $forecastAt,
-            'period' => 'hourly',
+            'period' => 'daily',
         ], $row);
 
         $stored = DB::table('weather_forecasts')
@@ -91,7 +94,7 @@ class WeatherController extends Controller
             ->where('farm_id', $farmId)
             ->where('provider', 'open_meteo')
             ->where('forecast_at', $forecastAt)
-            ->where('period', 'hourly')
+            ->where('period', 'daily')
             ->first();
 
         return response()->json([
@@ -161,9 +164,9 @@ class WeatherController extends Controller
         ];
     }
 
-    private function numberFrom(array $hourly, string $key): ?float
+    private function numberFrom(array $data, string $key): ?float
     {
-        $value = $hourly[$key][0] ?? null;
+        $value = $data[$key][0] ?? null;
 
         return is_numeric($value) ? (float) $value : null;
     }
