@@ -3,11 +3,10 @@
 namespace App\Services;
 
 use App\Models\Farm;
-use App\Models\Pasture;
-use App\Models\Plot;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GeoJsonService
@@ -72,22 +71,24 @@ class GeoJsonService
                 $properties = $feature['properties'] ?? [];
                 $name = $properties['name'] ?? $properties['nome'] ?? $properties['talhao'] ?? 'Talhão '.($count + 1);
                 $code = $properties['code'] ?? $properties['codigo'] ?? null;
+                $now = now();
 
-                $plot = Plot::query()->create([
-                    'tenant_id' => $farm->tenant_id,
-                    'farm_id' => $farm->id,
-                    'name' => $name,
-                    'code' => $code,
-                    'properties' => $properties,
-                    'created_by' => $userId,
-                    'updated_by' => $userId,
-                ]);
-
-                DB::table('plots')
-                    ->where('id', $plot->id)
-                    ->update([
-                        'geom' => DB::raw("ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON('".addslashes(json_encode($feature['geometry']))."'), 4326))"),
-                    ]);
+                DB::insert(
+                    'INSERT INTO plots (id, tenant_id, farm_id, name, code, properties, created_by, updated_by, created_at, updated_at, geom) VALUES (?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(?), 4326)))',
+                    [
+                        (string) Str::uuid(),
+                        $farm->tenant_id,
+                        $farm->id,
+                        $name,
+                        $code,
+                        json_encode($properties),
+                        $userId,
+                        $userId,
+                        $now,
+                        $now,
+                        json_encode($feature['geometry']),
+                    ]
+                );
 
                 $count++;
             }
