@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Internal\V1\FarmController;
 use App\Http\Controllers\Api\Internal\V1\FarmGeoJsonController;
 use App\Http\Controllers\Api\Internal\V1\FinancialTransactionController;
 use App\Http\Controllers\Api\Internal\V1\HarvestController;
+use App\Http\Controllers\Api\Internal\V1\ImportPlotGeoJsonController;
 use App\Http\Controllers\Api\Internal\V1\InventoryItemController;
 use App\Http\Controllers\Api\Internal\V1\MachineController;
 use App\Http\Controllers\Api\Internal\V1\MaintenanceRecordController;
@@ -29,7 +30,7 @@ use App\Http\Controllers\Api\Internal\V1\StockMovementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('internal/v1')
-    ->middleware(['auth:sanctum', 'active.user'])
+    ->middleware(['auth:sanctum'])
     ->name('api.internal.v1.')
     ->group(function (): void {
         Route::get('/me', MeController::class)->name('me');
@@ -41,6 +42,7 @@ Route::prefix('internal/v1')
 
         Route::get('/farms/{farm}/plots', [PlotController::class, 'index'])->name('farms.plots.index');
         Route::post('/farms/{farm}/plots', [PlotController::class, 'store'])->name('farms.plots.store');
+        Route::post('/farms/{farm}/plots/import-geojson', ImportPlotGeoJsonController::class)->name('farms.plots.import-geojson');
         Route::get('/farms/{farm}/plots/geojson', [PlotController::class, 'geoJson'])->name('farms.plots.geojson');
         Route::get('/farms/{farm}/pastures', [PastureController::class, 'index'])->name('farms.pastures.index');
         Route::post('/farms/{farm}/pastures', [PastureController::class, 'store'])->name('farms.pastures.store');
