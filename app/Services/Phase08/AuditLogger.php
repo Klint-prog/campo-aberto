@@ -4,6 +4,7 @@ namespace App\Services\Phase08;
 
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AuditLogger
 {
@@ -16,7 +17,7 @@ class AuditLogger
             'action' => $event,
             'event' => $event,
             'auditable_type' => $type,
-            'auditable_id' => $id,
+            'auditable_id' => $this->uuidOrNull($id),
             'old_values' => [],
             'new_values' => $metadata,
             'metadata' => $metadata,
@@ -24,5 +25,16 @@ class AuditLogger
             'user_agent' => $request?->userAgent(),
             'created_at' => now(),
         ]);
+    }
+
+    private function uuidOrNull(int|string|null $id): ?string
+    {
+        if ($id === null) {
+            return null;
+        }
+
+        $value = (string) $id;
+
+        return Str::isUuid($value) ? $value : null;
     }
 }
