@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Farm extends Model
 {
@@ -47,5 +49,43 @@ class Farm extends Model
         return $this->belongsToMany(User::class, 'farm_users')
             ->withPivot(['id', 'tenant_id', 'role_id', 'is_active'])
             ->withTimestamps();
+    }
+
+    public function fields(): HasMany
+    {
+        return $this->hasMany(Field::class);
+    }
+
+    public function plots(): HasMany
+    {
+        return $this->hasMany(Plot::class);
+    }
+
+    public function pastures(): HasMany
+    {
+        return $this->hasMany(Pasture::class);
+    }
+
+    public function mapFeatures(): HasMany
+    {
+        return $this->hasMany(MapFeature::class);
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(Attachment::class);
+    }
+
+    public function getBoundaryGeoJsonAttribute(): ?array
+    {
+        if (! $this->exists) {
+            return null;
+        }
+
+        $geojson = DB::table($this->getTable())
+            ->where('id', $this->getKey())
+            ->value(DB::raw('ST_AsGeoJSON(boundary)::json'));
+
+        return $geojson ? json_decode((string) $geojson, true) : null;
     }
 }
