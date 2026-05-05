@@ -19,4 +19,7 @@ Route::post('/ai/recommendations/{recommendation}/confirm', [AiConsultationContr
 
 Route::get('/farms/weather/forecast', [WeatherController::class, 'forecast']);
 Route::post('/manual-rain-records', [WeatherController::class, 'manualRain']);
+Route::post('/weather/manual-rain-records', [WeatherController::class, 'manualRain']);
+Route::post('/farms/weather/manual-rain-records', [WeatherController::class, 'manualRain']);
 Route::post('/alerts', [AlertController::class, 'store']);
+Route::get('/notifications', [AlertController::class, 'notifications']);
