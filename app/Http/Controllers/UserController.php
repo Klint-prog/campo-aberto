@@ -27,11 +27,25 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
+    public function create(): View
+    {
+        $this->authorize('create', User::class);
+
+        return view('users.create');
+    }
+
     public function show(User $user): View
     {
         $this->authorize('view', $user);
 
         return view('users.show', compact('user'));
+    }
+
+    public function edit(User $user): View
+    {
+        $this->authorize('update', $user);
+
+        return view('users.edit', compact('user'));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -50,7 +64,7 @@ class UserController extends Controller
         $this->syncAuthorizedFarms($user, $actor, $data['farm_ids'] ?? []);
         $this->audit($actor, 'user.created', $user, null, Arr::except($user->toArray(), ['password']));
 
-        return redirect()->route('users.show', $user);
+        return redirect()->route('users.show', $user)->with('success', 'Usuário criado com sucesso.');
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
@@ -60,6 +74,7 @@ class UserController extends Controller
         $data = $request->validated();
 
         $user->fill(Arr::only($data, ['name', 'email', 'is_active']));
+        $user->is_active = $request->boolean('is_active');
 
         if (! empty($data['password'])) {
             $user->password = Hash::make($data['password']);
@@ -73,7 +88,7 @@ class UserController extends Controller
 
         $this->audit($actor, 'user.updated', $user, $before, $user->only(['name', 'email', 'is_active']));
 
-        return redirect()->route('users.show', $user);
+        return redirect()->route('users.show', $user)->with('success', 'Usuário atualizado com sucesso.');
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
@@ -84,7 +99,7 @@ class UserController extends Controller
         $user->delete();
         $this->audit($request->user(), 'user.deleted', $user, $before, null);
 
-        return redirect()->route('users.index');
+        return redirect()->route('users.index')->with('success', 'Usuário removido com sucesso.');
     }
 
     private function syncAuthorizedFarms(User $user, User $actor, array $farmIds): void
