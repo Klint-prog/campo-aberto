@@ -1,5 +1,8 @@
 FROM php:8.3-fpm-alpine
 
+ARG UID=1000
+ARG GID=1000
+
 WORKDIR /var/www/html
 
 RUN apk add --no-cache \
@@ -27,7 +30,8 @@ RUN apk add --no-cache \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN addgroup -g 1000 campo && adduser -D -G campo -u 1000 campo
+RUN addgroup -g ${GID} campo \
+    && adduser -D -G campo -u ${UID} campo
 
 USER campo
 
