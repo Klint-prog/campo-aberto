@@ -36,8 +36,8 @@ class ReportController extends Controller
         return response()->json([
             'report' => $report,
             'filters' => [
-                'tenant_id' => $scope['tenant_id'],
-                'farm_id' => $scope['farm_id'],
+                'tenant_id' => $this->jsonId($scope['tenant_id']),
+                'farm_id' => $this->jsonId($scope['farm_id']),
             ],
             'data' => $this->catalog->dataset($report, $scope, $request->query()),
         ]);
@@ -79,5 +79,16 @@ class ReportController extends Controller
             'export' => $export,
             'message' => 'Exportação registrada. Geração física de PDF/CSV/Excel pode ser processada por fila em produção.',
         ], 201);
+    }
+
+    private function jsonId(string|int|null $value): string|int|null
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = (string) $value;
+
+        return ctype_digit($value) ? (int) $value : $value;
     }
 }
