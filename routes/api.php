@@ -12,18 +12,25 @@ use App\Http\Controllers\Api\Internal\V1\AnimalWeightRecordController;
 use App\Http\Controllers\Api\Internal\V1\CropController;
 use App\Http\Controllers\Api\Internal\V1\CropVarietyController;
 use App\Http\Controllers\Api\Internal\V1\CurrentTenantController;
+use App\Http\Controllers\Api\Internal\V1\DomainEventIntegrationController;
 use App\Http\Controllers\Api\Internal\V1\FarmController;
 use App\Http\Controllers\Api\Internal\V1\FarmGeoJsonController;
+use App\Http\Controllers\Api\Internal\V1\FinancialTransactionController;
 use App\Http\Controllers\Api\Internal\V1\HarvestController;
-use App\Http\Controllers\Api\Internal\V1\ImportPlotGeoJsonController;
+use App\Http\Controllers\Api\Internal\V1\InventoryItemController;
+use App\Http\Controllers\Api\Internal\V1\MachineController;
+use App\Http\Controllers\Api\Internal\V1\MaintenanceRecordController;
 use App\Http\Controllers\Api\Internal\V1\MeController;
+use App\Http\Controllers\Api\Internal\V1\PastureController;
 use App\Http\Controllers\Api\Internal\V1\PermissionController;
+use App\Http\Controllers\Api\Internal\V1\PlotController;
 use App\Http\Controllers\Api\Internal\V1\SeasonController;
+use App\Http\Controllers\Api\Internal\V1\StockMovementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('internal/v1')
-    ->as('api.internal.v1.')
-    ->middleware(['auth', 'tenant.scope'])
+    ->middleware(['auth:sanctum', 'active.user'])
+    ->name('api.internal.v1.')
     ->group(function (): void {
         Route::get('/me', MeController::class)->name('me');
         Route::get('/tenants/current', CurrentTenantController::class)->name('tenants.current');
@@ -31,11 +38,16 @@ Route::prefix('internal/v1')
         Route::get('/farms', FarmController::class)->middleware('farm.scope')->name('farms.index');
         Route::get('/farms/{farm}', [FarmController::class, 'show'])->name('farms.show');
         Route::get('/farms/{farm}/geojson', FarmGeoJsonController::class)->name('farms.geojson');
-        Route::post('/farms/{farm}/plots/import-geojson', ImportPlotGeoJsonController::class)->name('farms.plots.import-geojson');
+
+        Route::get('/farms/{farm}/plots', [PlotController::class, 'index'])->name('farms.plots.index');
+        Route::post('/farms/{farm}/plots', [PlotController::class, 'store'])->name('farms.plots.store');
+        Route::get('/farms/{farm}/plots/geojson', [PlotController::class, 'geoJson'])->name('farms.plots.geojson');
+        Route::get('/farms/{farm}/pastures', [PastureController::class, 'index'])->name('farms.pastures.index');
+        Route::post('/farms/{farm}/pastures', [PastureController::class, 'store'])->name('farms.pastures.store');
+        Route::get('/farms/{farm}/pastures/geojson', [PastureController::class, 'geoJson'])->name('farms.pastures.geojson');
 
         Route::get('/crops', [CropController::class, 'index'])->name('crops.index');
         Route::post('/crops', [CropController::class, 'store'])->name('crops.store');
-        Route::put('/crops/{crop}', [CropController::class, 'update'])->name('crops.update');
         Route::post('/crops/{crop}/varieties', [CropVarietyController::class, 'store'])->name('crops.varieties.store');
 
         Route::get('/farms/{farm}/seasons', [SeasonController::class, 'index'])->name('farms.seasons.index');
@@ -63,6 +75,19 @@ Route::prefix('internal/v1')
         Route::post('/farms/{farm}/animals/{animal}/vaccinations', [AnimalVaccinationRecordController::class, 'store'])->name('farms.animals.vaccinations.store');
         Route::post('/farms/{farm}/animals/{animal}/reproduction-records', [AnimalReproductionRecordController::class, 'store'])->name('farms.animals.reproduction-records.store');
         Route::post('/farms/{farm}/animals/{animal}/feed-consumptions', [AnimalFeedConsumptionController::class, 'store'])->name('farms.animals.feed-consumptions.store');
+
+        Route::get('/farms/{farm}/inventory-items', [InventoryItemController::class, 'index'])->name('farms.inventory-items.index');
+        Route::post('/farms/{farm}/inventory-items', [InventoryItemController::class, 'store'])->name('farms.inventory-items.store');
+        Route::get('/farms/{farm}/stock-movements', [StockMovementController::class, 'index'])->name('farms.stock-movements.index');
+        Route::post('/farms/{farm}/stock-movements', [StockMovementController::class, 'store'])->name('farms.stock-movements.store');
+
+        Route::get('/farms/{farm}/machines', [MachineController::class, 'index'])->name('farms.machines.index');
+        Route::post('/farms/{farm}/machines', [MachineController::class, 'store'])->name('farms.machines.store');
+        Route::post('/farms/{farm}/machines/{machine}/maintenance-records', [MaintenanceRecordController::class, 'store'])->name('farms.machines.maintenance-records.store');
+
+        Route::get('/farms/{farm}/financial-transactions', [FinancialTransactionController::class, 'index'])->name('farms.financial-transactions.index');
+        Route::post('/farms/{farm}/financial-transactions', [FinancialTransactionController::class, 'store'])->name('farms.financial-transactions.store');
+        Route::post('/domain-events/{domainEvent}/process-integrations', [DomainEventIntegrationController::class, 'store'])->name('domain-events.process-integrations');
 
         Route::get('/permissions', PermissionController::class)->name('permissions.index');
     });
