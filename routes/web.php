@@ -9,7 +9,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    return view('welcome');
 });
 
 Route::middleware('guest')->group(function (): void {
