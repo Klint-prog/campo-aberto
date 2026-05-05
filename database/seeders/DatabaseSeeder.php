@@ -8,6 +8,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(FoundationSeeder::class);
+        // Seeders de dados de demonstração serão reativados após estabilização das permissões.
     }
 }
