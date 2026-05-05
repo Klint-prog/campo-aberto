@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Farm;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class ActivityController extends Controller
@@ -59,7 +60,7 @@ class ActivityController extends Controller
             'updated_by' => $request->user()->id,
         ])->save();
 
-        $activity->markCompleted(isset($data['completed_at']) ? now()->parse($data['completed_at']) : null);
+        $activity->markCompleted(isset($data['completed_at']) ? Carbon::parse($data['completed_at']) : null);
 
         return response()->json(['success' => true, 'data' => $activity->fresh(['inputs'])]);
     }
