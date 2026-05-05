@@ -35,8 +35,10 @@ class Phase09ProductionServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
-        Route::prefix('api/internal/v1')
-            ->middleware('api')
-            ->group(base_path('routes/internal_phase09.php'));
+        foreach (glob(base_path('routes/internal_phase*.php')) ?: [] as $routesFile) {
+            Route::prefix('api/internal/v1')
+                ->middleware('api')
+                ->group($routesFile);
+        }
     }
 }
