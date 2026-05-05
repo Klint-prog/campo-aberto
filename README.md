@@ -4,7 +4,7 @@ Plataforma brasileira open source para gestão agrícola e pecuária com mapas, 
 
 ## Status
 
-Fundação inicial do projeto conforme a fase **00.5 — Framework, tooling, testes e CI/CD**.
+Fundação inicial do projeto conforme a fase **01 — Fundação Laravel, Docker, migrations e tenancy base**.
 
 ## Stack oficial
 
@@ -14,20 +14,27 @@ Fundação inicial do projeto conforme a fase **00.5 — Framework, tooling, tes
 - **Cache/Fila:** Redis
 - **Web server:** Nginx
 - **Containers:** Docker Compose
-- **Frontend inicial:** Blade + Bootstrap 5/Tailwind CSS em fase posterior
 - **Testes:** PHPUnit / Laravel Test Suite
 - **CI/CD:** GitHub Actions
 
-## Arquitetura inicial
+## Escopo desta fase
 
-Esta base prepara o projeto para desenvolvimento incremental por fases:
+Incluído nesta fase:
 
-1. Laravel como framework principal.
-2. Docker Compose com app PHP-FPM, Nginx, PostgreSQL/PostGIS e Redis.
-3. Migrations Laravel como padrão obrigatório para alterações estruturais de banco.
-4. Testes desde o início.
-5. GitHub Actions em push e pull request.
-6. Preparação conceitual para `tenant_id`, `farm_id` e `audit_logs` nas fases seguintes.
+- Laravel funcional.
+- Docker Compose com Nginx, PHP-FPM, PostgreSQL/PostGIS, Redis, pgAdmin, worker, scheduler e backup.
+- Migrations iniciais para tenancy base, usuários, papéis, permissões, fazendas mínimas e auditoria.
+- Ativação das extensões PostgreSQL `postgis`, `pg_trgm` e `pgcrypto`.
+- Seeder inicial com tenant, usuário admin, papel, permissão e fazenda de demonstração.
+- Testes iniciais de aplicação, banco, extensões e seeders.
+- GitHub Actions executando instalação, migrations, seeders, testes e Pint.
+
+Fora do escopo desta fase:
+
+- Autenticação completa.
+- Fazendas avançadas.
+- Mapas e geometrias operacionais.
+- Agricultura, pecuária, financeiro, BI ou IA.
 
 ## Requisitos locais
 
@@ -46,37 +53,52 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Depois gere a chave da aplicação:
+Depois instale dependências e gere a chave da aplicação:
 
 ```bash
-docker compose exec app php artisan key:generate
+docker compose exec php composer install
+docker compose exec php php artisan key:generate
 ```
 
-Execute as migrations:
+Execute migrations e seeders:
 
 ```bash
-docker compose exec app php artisan migrate
+docker compose exec php php artisan migrate
+docker compose exec php php artisan db:seed
 ```
 
 Execute os testes:
 
 ```bash
-docker compose exec app php artisan test
+docker compose exec php php artisan test
 ```
 
 Rodar Laravel Pint:
 
 ```bash
-docker compose exec app ./vendor/bin/pint
+docker compose exec php ./vendor/bin/pint --test
 ```
 
 ## Serviços e portas
 
 | Serviço | Porta local | Container |
 |---|---:|---|
-| Nginx / Laravel | 8088 | `web` |
-| PostgreSQL/PostGIS | 54329 | `db` |
+| Nginx / Laravel | 8088 | `nginx` |
+| PostgreSQL/PostGIS | 54329 | `postgres` |
 | Redis | 63799 | `redis` |
+| pgAdmin | 8089 | `pgadmin` |
+| Worker | interno | `worker` |
+| Scheduler | interno | `scheduler` |
+| Backup | interno | `backup` |
+
+## Credenciais iniciais de desenvolvimento
+
+```text
+Admin: admin@campoaberto.local
+Senha: CampoAberto@2026
+```
+
+A credencial acima é apenas para ambiente local e seed inicial. Não representa autenticação completa.
 
 ## Variáveis principais
 
@@ -87,13 +109,19 @@ APP_NAME="Campo Aberto"
 APP_ENV=local
 APP_URL=http://localhost:8088
 DB_CONNECTION=pgsql
-DB_HOST=db
+DB_HOST=postgres
 DB_PORT=5432
 DB_DATABASE=campo_aberto
 DB_USERNAME=campo_aberto
 DB_PASSWORD=campo_aberto
 REDIS_HOST=redis
 ```
+
+## Regras geoespaciais reservadas
+
+- SRID padrão web: **4326**.
+- Para dados brasileiros, documentar e avaliar **SRID 4674 / SIRGAS 2000**.
+- Geometrias operacionais e índices GIST serão criados apenas nas fases de mapas/geodados.
 
 ## CI/CD
 
@@ -103,19 +131,9 @@ O workflow está em `.github/workflows/ci.yml` e executa:
 - cópia de `.env.testing.example`
 - `php artisan key:generate`
 - `php artisan migrate --force`
+- `php artisan db:seed --force`
 - `php artisan test`
 - Laravel Pint em modo check
-
-## Regras globais do projeto
-
-- Uma fase por janela de contexto.
-- Não implementar fase posterior antes da base estar estável.
-- Toda alteração estrutural de banco deve ser migration Laravel.
-- Toda tabela operacional deve avaliar `tenant_id` e `farm_id`.
-- Toda operação crítica deve gerar `audit_log`.
-- Todo módulo deve ter testes mínimos.
-- Toda consulta deve respeitar escopo por tenant e fazenda.
-- Evitar dependência obrigatória de APIs pagas no MVP.
 
 ## Licença
 
