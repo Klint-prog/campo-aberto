@@ -1,36 +1,40 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: campo_aberto_app
-    restart: unless-stopped
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      - db
-      - redis
-    networks:
-      - campo_aberto
-
-  web:
+  nginx:
     image: nginx:1.27-alpine
-    container_name: campo_aberto_web
+    container_name: campo_aberto_nginx
     restart: unless-stopped
     ports:
       - "8088:80"
     volumes:
       - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - app
+      - php
     networks:
       - campo_aberto
 
-  db:
+  php:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    container_name: campo_aberto_php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - campo_aberto
+
+  postgres:
     image: postgis/postgis:16-3.4
-    container_name: campo_aberto_db
+    container_name: campo_aberto_postgres
     restart: unless-stopped
     ports:
       - "54329:5432"
@@ -38,6 +42,11 @@ services:
       POSTGRES_DB: campo_aberto
       POSTGRES_USER: campo_aberto
       POSTGRES_PASSWORD: campo_aberto
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campo_aberto -d campo_aberto"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - campo_aberto_pgdata:/var/lib/postgresql/data
     networks:
@@ -49,6 +58,83 @@ services:
     restart: unless-stopped
     ports:
       - "63799:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - campo_aberto_redisdata:/data
+    networks:
+      - campo_aberto
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: campo_aberto_pgadmin
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@campoaberto.local
+      PGADMIN_DEFAULT_PASSWORD: campo_aberto
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - campo_aberto_pgadmindata:/var/lib/pgadmin
+    networks:
+      - campo_aberto
+
+  worker:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    container_name: campo_aberto_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - campo_aberto
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    container_name: campo_aberto_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan schedule:work
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - campo_aberto
+
+  backup:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    container_name: campo_aberto_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: campo_aberto
+      POSTGRES_USER: campo_aberto
+      POSTGRES_PASSWORD: campo_aberto
+      SCHEDULE: '@daily'
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+    volumes:
+      - campo_aberto_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - campo_aberto
 
@@ -58,3 +144,6 @@ networks:
 
 volumes:
   campo_aberto_pgdata:
+  campo_aberto_redisdata:
+  campo_aberto_pgadmindata:
+  campo_aberto_backups:
