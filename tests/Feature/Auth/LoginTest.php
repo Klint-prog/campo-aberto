@@ -5,14 +5,12 @@ namespace Tests\Feature\Auth;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
 {
     use RefreshDatabase;
-    use WithoutMiddleware;
 
     public function test_admin_can_login(): void
     {
@@ -29,10 +27,12 @@ class LoginTest extends TestCase
             'password' => Hash::make('secret-login'),
         ]);
 
-        $this->post('/login', [
-            'email' => 'admin@example.test',
-            'password' => 'secret-login',
-        ])->assertRedirect('/users');
+        $this->withSession(['_token' => 'test-token'])
+            ->post('/login', [
+                '_token' => 'test-token',
+                'email' => 'admin@example.test',
+                'password' => 'secret-login',
+            ])->assertRedirect('/users');
 
         $this->assertAuthenticated();
     }
