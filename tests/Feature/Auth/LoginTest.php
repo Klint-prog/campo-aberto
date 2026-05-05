@@ -4,19 +4,18 @@ namespace Tests\Feature\Auth;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
 {
     use RefreshDatabase;
+    use WithoutMiddleware;
 
     public function test_admin_can_login(): void
     {
-        $this->withoutMiddleware(VerifyCsrfToken::class);
-
         $tenant = Tenant::query()->create([
             'id' => '33000000-0000-0000-0000-000000000001',
             'name' => 'Tenant Login',
