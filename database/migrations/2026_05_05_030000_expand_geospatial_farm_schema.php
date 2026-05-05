@@ -33,13 +33,16 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('attachments');
-        Schema::dropIfExists('map_features');
-        Schema::dropIfExists('pastures');
-        Schema::dropIfExists('plots');
-        Schema::dropIfExists('fields');
         DB::statement('DROP INDEX IF EXISTS farms_boundary_gist');
+        DB::statement('DROP INDEX IF EXISTS fields_geom_gist');
+        DB::statement('DROP INDEX IF EXISTS plots_geom_gist');
+        DB::statement('DROP INDEX IF EXISTS pastures_geom_gist');
+        DB::statement('DROP INDEX IF EXISTS map_features_geom_gist');
         DB::statement('ALTER TABLE farms DROP COLUMN IF EXISTS boundary');
+        DB::statement('ALTER TABLE fields DROP COLUMN IF EXISTS geom');
+        DB::statement('ALTER TABLE plots DROP COLUMN IF EXISTS geom');
+        DB::statement('ALTER TABLE pastures DROP COLUMN IF EXISTS geom');
+        DB::statement('ALTER TABLE map_features DROP COLUMN IF EXISTS geom');
     }
 
     private function createFieldsTableIfMissing(): void
