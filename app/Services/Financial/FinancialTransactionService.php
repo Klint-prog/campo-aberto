@@ -22,10 +22,12 @@ class FinancialTransactionService
             'name' => $categoryName,
         ], ['is_active' => true]);
 
+        $status = ! empty($data['paid_on']) ? 'paid' : 'pending';
+
         return FinancialTransaction::create($data + [
             'type' => $type,
             'financial_category_id' => $category->id,
-            'status' => $data['paid_on'] ?? false ? 'paid' : 'pending',
+            'status' => $status,
         ]);
     }
 }
