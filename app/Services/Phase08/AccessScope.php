@@ -9,9 +9,9 @@ class AccessScope
 {
     public function fromRequest(Request $request, bool $requireFarm = false): array
     {
-        $tenantId = $request->integer('tenant_id') ?: $request->headers->get('X-Tenant-Id');
-        $farmId = $request->integer('farm_id') ?: $request->headers->get('X-Farm-Id');
-        $userId = $request->integer('user_id') ?: $request->headers->get('X-User-Id');
+        $tenantId = $request->input('tenant_id') ?: $request->headers->get('X-Tenant-Id');
+        $farmId = $request->input('farm_id') ?: $request->headers->get('X-Farm-Id');
+        $userId = $request->input('user_id') ?: $request->headers->get('X-User-Id');
         $permissions = $this->permissions($request);
         $allowedFarmIds = $this->allowedFarmIds($request);
 
@@ -23,14 +23,14 @@ class AccessScope
             throw new AccessDeniedHttpException('farm_id é obrigatório para esta operação.');
         }
 
-        if ($farmId && $allowedFarmIds !== ['*'] && ! in_array((int) $farmId, $allowedFarmIds, true)) {
+        if ($farmId && $allowedFarmIds !== ['*'] && ! in_array((string) $farmId, $allowedFarmIds, true)) {
             throw new AccessDeniedHttpException('Fazenda não autorizada para este usuário.');
         }
 
         return [
-            'tenant_id' => (int) $tenantId,
-            'farm_id' => $farmId ? (int) $farmId : null,
-            'user_id' => $userId ? (int) $userId : null,
+            'tenant_id' => (string) $tenantId,
+            'farm_id' => $farmId ? (string) $farmId : null,
+            'user_id' => $userId ? (string) $userId : null,
             'permissions' => $permissions,
             'allowed_farm_ids' => $allowedFarmIds,
         ];
@@ -48,7 +48,7 @@ class AccessScope
         $value = $request->headers->get('X-Permissions', (string) $request->input('permissions', ''));
 
         if (is_array($request->input('permissions'))) {
-            return array_values(array_filter($request->input('permissions')));
+            return array_values(array_filter(array_map('strval', $request->input('permissions'))));
         }
 
         return array_values(array_filter(array_map('trim', explode(',', $value))));
@@ -63,9 +63,9 @@ class AccessScope
         }
 
         if (is_array($request->input('allowed_farm_ids'))) {
-            return array_map('intval', array_filter($request->input('allowed_farm_ids')));
+            return array_values(array_filter(array_map('strval', $request->input('allowed_farm_ids'))));
         }
 
-        return array_map('intval', array_filter(array_map('trim', explode(',', $value))));
+        return array_values(array_filter(array_map('trim', explode(',', $value))));
     }
 }
