@@ -52,4 +52,22 @@ class AlertController extends Controller
             'data' => DB::table('internal_alerts')->find($alertId),
         ], 201);
     }
+
+    public function notifications(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tenant_id' => ['required', 'integer'],
+            'farm_id' => ['nullable', 'integer'],
+        ]);
+
+        $items = DB::table('notifications')
+            ->where('tenant_id', $validated['tenant_id'])
+            ->when(array_key_exists('farm_id', $validated), fn ($query) => $query->where('farm_id', $validated['farm_id']))
+            ->orderByDesc('id')
+            ->paginate(15);
+
+        return response()->json([
+            'data' => $items,
+        ]);
+    }
 }
