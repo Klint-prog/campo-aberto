@@ -2,36 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
-    use HasUuids;
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
-    public $timestamps = false;
-
     protected $fillable = [
         'tenant_id',
+        'farm_id',
         'user_id',
-        'action',
+        'event',
         'auditable_type',
         'auditable_id',
-        'old_values',
-        'new_values',
-        'created_at',
+        'metadata',
+        'ip_address',
+        'user_agent',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'old_values' => 'array',
-            'new_values' => 'array',
-            'created_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'metadata' => 'array',
+    ];
 }
