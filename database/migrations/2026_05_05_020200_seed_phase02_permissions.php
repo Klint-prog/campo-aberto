@@ -8,8 +8,6 @@ return new class extends Migration
     public function up(): void
     {
         $now = now();
-        $adminRoleId = '00000000-0000-0000-0000-000000000003';
-
         $permissions = [
             '00000000-0000-0000-0000-000000000007' => ['users.view', 'Visualizar usuários'],
             '00000000-0000-0000-0000-000000000008' => ['users.manage', 'Gerenciar usuários'],
@@ -22,14 +20,6 @@ return new class extends Migration
                 'id' => $permissionId,
                 'name' => $name,
                 'description' => 'Permissão da fase 02.',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-
-            DB::table('role_permissions')->updateOrInsert([
-                'role_id' => $adminRoleId,
-                'permission_id' => $permissionId,
-            ], [
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
