@@ -22,15 +22,13 @@ use App\Http\Controllers\Api\Internal\V1\InventoryItemController;
 use App\Http\Controllers\Api\Internal\V1\MachineController;
 use App\Http\Controllers\Api\Internal\V1\MaintenanceRecordController;
 use App\Http\Controllers\Api\Internal\V1\MeController;
-use App\Http\Controllers\Api\Internal\V1\PastureController;
 use App\Http\Controllers\Api\Internal\V1\PermissionController;
-use App\Http\Controllers\Api\Internal\V1\PlotController;
 use App\Http\Controllers\Api\Internal\V1\SeasonController;
 use App\Http\Controllers\Api\Internal\V1\StockMovementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('internal/v1')
-    ->middleware(['auth:sanctum'])
+    ->middleware(['auth'])
     ->name('api.internal.v1.')
     ->group(function (): void {
         Route::get('/me', MeController::class)->name('me');
@@ -39,14 +37,7 @@ Route::prefix('internal/v1')
         Route::get('/farms', FarmController::class)->middleware('farm.scope')->name('farms.index');
         Route::get('/farms/{farm}', [FarmController::class, 'show'])->name('farms.show');
         Route::get('/farms/{farm}/geojson', FarmGeoJsonController::class)->name('farms.geojson');
-
-        Route::get('/farms/{farm}/plots', [PlotController::class, 'index'])->name('farms.plots.index');
-        Route::post('/farms/{farm}/plots', [PlotController::class, 'store'])->name('farms.plots.store');
         Route::post('/farms/{farm}/plots/import-geojson', ImportPlotGeoJsonController::class)->name('farms.plots.import-geojson');
-        Route::get('/farms/{farm}/plots/geojson', [PlotController::class, 'geoJson'])->name('farms.plots.geojson');
-        Route::get('/farms/{farm}/pastures', [PastureController::class, 'index'])->name('farms.pastures.index');
-        Route::post('/farms/{farm}/pastures', [PastureController::class, 'store'])->name('farms.pastures.store');
-        Route::get('/farms/{farm}/pastures/geojson', [PastureController::class, 'geoJson'])->name('farms.pastures.geojson');
 
         Route::get('/crops', [CropController::class, 'index'])->name('crops.index');
         Route::post('/crops', [CropController::class, 'store'])->name('crops.store');
