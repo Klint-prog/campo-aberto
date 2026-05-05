@@ -14,6 +14,40 @@ return new class extends Migration
         DB::statement('ALTER TABLE farms ADD COLUMN IF NOT EXISTS boundary geometry(MultiPolygon, 4326)');
         DB::statement('CREATE INDEX IF NOT EXISTS farms_boundary_gist ON farms USING GIST (boundary)');
 
+        $this->createFieldsTableIfMissing();
+        $this->createPlotsTableIfMissing();
+        $this->createPasturesTableIfMissing();
+        $this->createMapFeaturesTableIfMissing();
+        $this->createAttachmentsTableIfMissing();
+
+        DB::statement('ALTER TABLE fields ADD COLUMN IF NOT EXISTS geom geometry(MultiPolygon, 4326)');
+        DB::statement('ALTER TABLE plots ADD COLUMN IF NOT EXISTS geom geometry(MultiPolygon, 4326)');
+        DB::statement('ALTER TABLE pastures ADD COLUMN IF NOT EXISTS geom geometry(MultiPolygon, 4326)');
+        DB::statement('ALTER TABLE map_features ADD COLUMN IF NOT EXISTS geom geometry(Geometry, 4326)');
+
+        DB::statement('CREATE INDEX IF NOT EXISTS fields_geom_gist ON fields USING GIST (geom)');
+        DB::statement('CREATE INDEX IF NOT EXISTS plots_geom_gist ON plots USING GIST (geom)');
+        DB::statement('CREATE INDEX IF NOT EXISTS pastures_geom_gist ON pastures USING GIST (geom)');
+        DB::statement('CREATE INDEX IF NOT EXISTS map_features_geom_gist ON map_features USING GIST (geom)');
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('attachments');
+        Schema::dropIfExists('map_features');
+        Schema::dropIfExists('pastures');
+        Schema::dropIfExists('plots');
+        Schema::dropIfExists('fields');
+        DB::statement('DROP INDEX IF EXISTS farms_boundary_gist');
+        DB::statement('ALTER TABLE farms DROP COLUMN IF EXISTS boundary');
+    }
+
+    private function createFieldsTableIfMissing(): void
+    {
+        if (Schema::hasTable('fields')) {
+            return;
+        }
+
         Schema::create('fields', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
@@ -31,9 +65,13 @@ return new class extends Migration
             $table->unique(['farm_id', 'code']);
             $table->index(['tenant_id', 'farm_id']);
         });
+    }
 
-        DB::statement('ALTER TABLE fields ADD COLUMN geom geometry(MultiPolygon, 4326) NOT NULL');
-        DB::statement('CREATE INDEX IF NOT EXISTS fields_geom_gist ON fields USING GIST (geom)');
+    private function createPlotsTableIfMissing(): void
+    {
+        if (Schema::hasTable('plots')) {
+            return;
+        }
 
         Schema::create('plots', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -54,9 +92,13 @@ return new class extends Migration
             $table->index(['tenant_id', 'farm_id']);
             $table->index('field_id');
         });
+    }
 
-        DB::statement('ALTER TABLE plots ADD COLUMN geom geometry(MultiPolygon, 4326) NOT NULL');
-        DB::statement('CREATE INDEX IF NOT EXISTS plots_geom_gist ON plots USING GIST (geom)');
+    private function createPasturesTableIfMissing(): void
+    {
+        if (Schema::hasTable('pastures')) {
+            return;
+        }
 
         Schema::create('pastures', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -75,9 +117,13 @@ return new class extends Migration
             $table->unique(['farm_id', 'code']);
             $table->index(['tenant_id', 'farm_id']);
         });
+    }
 
-        DB::statement('ALTER TABLE pastures ADD COLUMN geom geometry(MultiPolygon, 4326) NOT NULL');
-        DB::statement('CREATE INDEX IF NOT EXISTS pastures_geom_gist ON pastures USING GIST (geom)');
+    private function createMapFeaturesTableIfMissing(): void
+    {
+        if (Schema::hasTable('map_features')) {
+            return;
+        }
 
         Schema::create('map_features', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -94,9 +140,13 @@ return new class extends Migration
             $table->index(['tenant_id', 'farm_id']);
             $table->index('type');
         });
+    }
 
-        DB::statement('ALTER TABLE map_features ADD COLUMN geom geometry(Geometry, 4326) NOT NULL');
-        DB::statement('CREATE INDEX IF NOT EXISTS map_features_geom_gist ON map_features USING GIST (geom)');
+    private function createAttachmentsTableIfMissing(): void
+    {
+        if (Schema::hasTable('attachments')) {
+            return;
+        }
 
         Schema::create('attachments', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -115,16 +165,5 @@ return new class extends Migration
             $table->index(['tenant_id', 'farm_id']);
             $table->index(['attachable_type', 'attachable_id']);
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('attachments');
-        Schema::dropIfExists('map_features');
-        Schema::dropIfExists('pastures');
-        Schema::dropIfExists('plots');
-        Schema::dropIfExists('fields');
-        DB::statement('DROP INDEX IF EXISTS farms_boundary_gist');
-        DB::statement('ALTER TABLE farms DROP COLUMN IF EXISTS boundary');
     }
 };
