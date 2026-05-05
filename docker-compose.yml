@@ -17,9 +17,13 @@ services:
     build:
       context: .
       dockerfile: php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: campo_aberto_php
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www/html
     environment:
@@ -85,9 +89,13 @@ services:
     build:
       context: .
       dockerfile: php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: campo_aberto_worker
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
     command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
     volumes:
       - ./:/var/www/html
@@ -103,9 +111,13 @@ services:
     build:
       context: .
       dockerfile: php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: campo_aberto_scheduler
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
     command: php artisan schedule:work
     volumes:
       - ./:/var/www/html
