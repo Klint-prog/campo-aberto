@@ -71,6 +71,26 @@ class Farm extends Model
         return $this->hasMany(MapFeature::class);
     }
 
+    public function seasons(): HasMany
+    {
+        return $this->hasMany(Season::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    public function harvests(): HasMany
+    {
+        return $this->hasMany(Harvest::class);
+    }
+
+    public function domainEvents(): HasMany
+    {
+        return $this->hasMany(DomainEvent::class);
+    }
+
     public function attachments(): HasMany
     {
         return $this->hasMany(Attachment::class);
