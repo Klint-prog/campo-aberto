@@ -122,6 +122,22 @@ class WeatherController extends Controller
             'updated_at' => now(),
         ]);
 
+        DB::table('weather_histories')->updateOrInsert([
+            'tenant_id' => $validated['tenant_id'],
+            'farm_id' => $validated['farm_id'],
+            'observed_on' => $validated['measured_on'],
+            'source' => 'manual_rain_gauge',
+        ], [
+            'precipitation_mm' => $validated['amount_mm'],
+            'raw_payload' => json_encode([
+                'manual_rain_record_id' => $id,
+                'gauge_name' => $validated['gauge_name'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         return response()->json([
             'data' => DB::table('manual_rain_records')->find($id),
         ], 201);
