@@ -12,7 +12,15 @@ class LoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_login(): void
+    public function test_login_screen_can_be_rendered(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('Campo Aberto Tecnologia Rural')
+            ->assertSee('Acessar plataforma');
+    }
+
+    public function test_admin_can_login_and_is_redirected_to_dashboard(): void
     {
         $tenant = Tenant::query()->create([
             'id' => '33000000-0000-0000-0000-000000000001',
@@ -32,7 +40,7 @@ class LoginTest extends TestCase
                 '_token' => 'test-token',
                 'email' => 'admin@example.test',
                 'password' => 'secret-login',
-            ])->assertRedirect('/users');
+            ])->assertRedirect('/dashboard');
 
         $this->assertAuthenticated();
     }
