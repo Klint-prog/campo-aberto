@@ -56,7 +56,7 @@ class SafeAiConsultant
             'farm_id' => $scope['farm_id'] ?? null,
             'user_id' => $scope['user_id'] ?? null,
             'recommendation' => $this->buildRecommendation($useCase, $question, $critical),
-            'risk_level' => $critical ? 'critical_requires_human_confirmation' : 'informational',
+            'risk_level' => $critical ? 'critical' : 'informational',
             'critical_action' => $critical,
             'requires_confirmation' => $critical,
             'safety_disclaimer' => self::DISCLAIMER,
