@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: campo_aberto_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - redis
+    networks:
+      - campo_aberto
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: campo_aberto_web
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - campo_aberto
+
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: campo_aberto_db
+    restart: unless-stopped
+    ports:
+      - "54329:5432"
+    environment:
+      POSTGRES_DB: campo_aberto
+      POSTGRES_USER: campo_aberto
+      POSTGRES_PASSWORD: campo_aberto
+    volumes:
+      - campo_aberto_pgdata:/var/lib/postgresql/data
+    networks:
+      - campo_aberto
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: campo_aberto_redis
+    restart: unless-stopped
+    ports:
+      - "63799:6379"
+    networks:
+      - campo_aberto
+
+networks:
+  campo_aberto:
+    driver: bridge
+
+volumes:
+  campo_aberto_pgdata:
