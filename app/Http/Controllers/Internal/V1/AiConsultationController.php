@@ -52,11 +52,11 @@ class AiConsultationController extends Controller
         $scope = $this->accessScope->fromRequest($request);
         $this->accessScope->assertPermission($scope, 'ai.confirm_critical_action');
 
-        if ((int) $recommendation->tenant_id !== $scope['tenant_id']) {
+        if ((string) $recommendation->tenant_id !== (string) $scope['tenant_id']) {
             abort(403, 'Recomendação pertence a outro tenant.');
         }
 
-        if (($scope['farm_id'] ?? null) && (int) $recommendation->farm_id !== (int) $scope['farm_id']) {
+        if (($scope['farm_id'] ?? null) && (string) $recommendation->farm_id !== (string) $scope['farm_id']) {
             abort(403, 'Recomendação pertence a outra fazenda.');
         }
 
