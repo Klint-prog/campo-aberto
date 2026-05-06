@@ -17,8 +17,9 @@
             ['Culturas', route('crops.index'), request()->routeIs('crops.*')],
             ['Variedades', route('crop-varieties.index'), request()->routeIs('crop-varieties.*')],
             ['Safras', route('seasons.index'), request()->routeIs('seasons.*')],
-            ['Atividades', route('activities.index'), request()->routeIs('activities.index')],
-            ['Colheitas', route('under-construction', 'harvests'), request()->is('under-construction/harvests')],
+            ['Atividades', route('activities.index'), request()->routeIs('activities.*')],
+            ['Colheitas', route('harvests.index'), request()->routeIs('harvests.*')],
+            ['Relatório agrícola', route('reports.agriculture'), request()->routeIs('reports.agriculture')],
         ],
         'Pecuária' => [
             ['Animais', route('animals.index'), request()->routeIs('animals.index')],
