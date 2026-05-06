@@ -16,13 +16,14 @@ class OfflineMapModeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_farm_map_shows_online_offline_selector_and_navigation(): void
+    public function test_farm_map_shows_online_offline_selector_navigation_and_quick_points(): void
     {
         [$user, $farm] = $this->authorizedUserAndFarm();
 
         $this->actingAs($user)
             ->get("/farms/{$farm->id}/map")
             ->assertOk()
+            ->assertSee('Local')
             ->assertSee('Online')
             ->assertSee('Offline')
             ->assertSee('Fonte do mapa')
@@ -31,7 +32,11 @@ class OfflineMapModeTest extends TestCase
             ->assertSee('Fazendas')
             ->assertSee('Mapas')
             ->assertSee('Voltar')
-            ->assertSee('Use <strong>Online</strong>', false);
+            ->assertSee('Pontos rápidos')
+            ->assertSee('Nome do ponto')
+            ->assertSee('Usar centro do mapa')
+            ->assertSee('Salvar ponto')
+            ->assertSee('Marcar clicando no mapa');
     }
 
     public function test_offline_status_returns_unavailable_when_package_does_not_exist(): void
