@@ -16,7 +16,7 @@ class OfflineMapModeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_farm_map_shows_online_offline_selector(): void
+    public function test_farm_map_shows_online_offline_selector_and_navigation(): void
     {
         [$user, $farm] = $this->authorizedUserAndFarm();
 
@@ -26,7 +26,12 @@ class OfflineMapModeTest extends TestCase
             ->assertSee('Online')
             ->assertSee('Offline')
             ->assertSee('Fonte do mapa')
-            ->assertSee('Status offline');
+            ->assertSee('Status offline')
+            ->assertSee('Dashboard')
+            ->assertSee('Fazendas')
+            ->assertSee('Mapas')
+            ->assertSee('Voltar')
+            ->assertSee('Use <strong>Online</strong>', false);
     }
 
     public function test_offline_status_returns_unavailable_when_package_does_not_exist(): void
