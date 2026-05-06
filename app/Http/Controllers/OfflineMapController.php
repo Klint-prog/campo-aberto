@@ -28,9 +28,7 @@ class OfflineMapController extends Controller
                 'available' => $package !== null,
                 'farm_id' => $farm->id,
                 'package' => $package,
-                'tile_url_template' => $package
-                    ? route('farms.map.offline.tile', ['farm' => $farm, 'z' => '{z}', 'x' => '{x}', 'y' => '{y}'], false)
-                    : null,
+                'tile_url_template' => $package ? $this->tileUrlTemplate($farm, $package) : null,
                 'message' => $package
                     ? 'Mapa offline disponível para esta fazenda.'
                     : 'Mapa offline ainda não disponível para esta fazenda.',
@@ -70,6 +68,13 @@ class OfflineMapController extends Controller
         return response(Storage::disk('local')->get($relativePath), 200)
             ->header('Content-Type', $mimeType)
             ->header('Cache-Control', 'public, max-age=86400');
+    }
+
+    private function tileUrlTemplate(Farm $farm, OfflineMapPackage $package): string
+    {
+        $extension = $package->tile_format ?: 'png';
+
+        return url("/farms/{$farm->id}/map/offline/tiles/{z}/{x}/{y}.{$extension}");
     }
 
     private function authorizeFarm(Request $request, Farm $farm): void
