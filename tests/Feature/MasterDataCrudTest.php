@@ -54,7 +54,8 @@ class MasterDataCrudTest extends TestCase
         $farm = Farm::query()->where('code', 'CRUD-001')->firstOrFail();
 
         $this->actingAs($this->user)
-            ->put(route('farms.update', $farm), [
+            ->post(route('farms.update', $farm), [
+                '_method' => 'PUT',
                 'name' => 'Fazenda Teste CRUD Atualizada',
                 'code' => 'CRUD-001',
                 'city' => 'Goiana',
