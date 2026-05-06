@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ActivityInputWebController;
+use App\Http\Controllers\ActivityWebController;
+use App\Http\Controllers\AgricultureReportWebController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CropVarietyWebController;
 use App\Http\Controllers\CropWebController;
@@ -7,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FarmMapController;
 use App\Http\Controllers\FarmWebController;
 use App\Http\Controllers\FieldWebController;
+use App\Http\Controllers\HarvestWebController;
 use App\Http\Controllers\OperationalModuleController;
 use App\Http\Controllers\PastureWebController;
 use App\Http\Controllers\SeasonWebController;
@@ -52,7 +56,18 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
     Route::get('/seasons/export.csv', [SeasonWebController::class, 'export'])->name('seasons.export');
     Route::resource('seasons', SeasonWebController::class);
 
-    Route::get('/activities', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'activities'))->name('activities.index');
+    Route::get('/activities/export.csv', [ActivityWebController::class, 'export'])->name('activities.export');
+    Route::post('/activities/{activity}/complete', [ActivityWebController::class, 'complete'])->name('activities.complete');
+    Route::post('/activities/{activity}/cancel', [ActivityWebController::class, 'cancel'])->name('activities.cancel');
+    Route::post('/activities/{activity}/inputs', [ActivityInputWebController::class, 'store'])->name('activities.inputs.store');
+    Route::delete('/activities/{activity}/inputs/{input}', [ActivityInputWebController::class, 'destroy'])->name('activities.inputs.destroy');
+    Route::resource('activities', ActivityWebController::class)->except('destroy');
+
+    Route::get('/harvests/export.csv', [HarvestWebController::class, 'export'])->name('harvests.export');
+    Route::resource('harvests', HarvestWebController::class)->except('destroy');
+
+    Route::get('/reports/agriculture', AgricultureReportWebController::class)->name('reports.agriculture');
+
     Route::get('/animals', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animals'))->name('animals.index');
     Route::get('/animal-groups', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animal-groups'))->name('animal-groups.index');
     Route::get('/inventory', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'inventory'))->name('inventory.index');
