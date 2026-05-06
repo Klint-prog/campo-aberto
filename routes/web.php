@@ -127,7 +127,7 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
     Route::get('/finance/categories/export.csv', [FinancialCategoryWebController::class, 'export'])->name('finance.categories.export');
     Route::resource('finance/categories', FinancialCategoryWebController::class)->names('finance.categories');
 
-    Route::get('/finance/transactions/export.csv', [FinancialTransactionController::class, 'export'])->name('finance.transactions.export');
+    Route::get('/finance/transactions/export.csv', [FinancialTransactionWebController::class, 'export'])->name('finance.transactions.export');
     Route::resource('finance/transactions', FinancialTransactionWebController::class)->only(['index', 'create', 'store'])->names('finance.transactions');
     Route::redirect('/finance', '/finance/transactions')->name('finance.index');
 
