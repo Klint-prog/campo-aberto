@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Crop;
 use App\Models\Farm;
 use App\Models\User;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ class MasterDataCrudTest extends TestCase
     {
         parent::setUp();
 
-        $this->withoutMiddleware(VerifyCsrfToken::class);
+        $this->withoutMiddleware(ValidateCsrfToken::class);
         $this->seed();
 
         $this->user = User::query()->where('email', 'admin@campoaberto.local')->firstOrFail();
