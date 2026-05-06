@@ -3,6 +3,13 @@
 use App\Http\Controllers\ActivityInputWebController;
 use App\Http\Controllers\ActivityWebController;
 use App\Http\Controllers\AgricultureReportWebController;
+use App\Http\Controllers\AnimalFeedConsumptionWebController;
+use App\Http\Controllers\AnimalHealthRecordWebController;
+use App\Http\Controllers\AnimalLotWebController;
+use App\Http\Controllers\AnimalMovementWebController;
+use App\Http\Controllers\AnimalVaccinationRecordWebController;
+use App\Http\Controllers\AnimalWebController;
+use App\Http\Controllers\AnimalWeightRecordWebController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CropVarietyWebController;
 use App\Http\Controllers\CropWebController;
@@ -11,6 +18,7 @@ use App\Http\Controllers\FarmMapController;
 use App\Http\Controllers\FarmWebController;
 use App\Http\Controllers\FieldWebController;
 use App\Http\Controllers\HarvestWebController;
+use App\Http\Controllers\LivestockReportWebController;
 use App\Http\Controllers\OperationalModuleController;
 use App\Http\Controllers\PastureWebController;
 use App\Http\Controllers\SeasonWebController;
@@ -68,8 +76,22 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
 
     Route::get('/reports/agriculture', AgricultureReportWebController::class)->name('reports.agriculture');
 
-    Route::get('/animals', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animals'))->name('animals.index');
-    Route::get('/animal-groups', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animal-groups'))->name('animal-groups.index');
+    Route::get('/animal-lots/export.csv', [AnimalLotWebController::class, 'export'])->name('animal-lots.export');
+    Route::resource('animal-lots', AnimalLotWebController::class)->except('destroy');
+
+    Route::get('/animals/export.csv', [AnimalWebController::class, 'export'])->name('animals.export');
+    Route::get('/animal-weights/export.csv', [LivestockReportWebController::class, 'exportWeights'])->name('animal-weights.export');
+    Route::get('/animal-health/export.csv', [LivestockReportWebController::class, 'exportHealth'])->name('animal-health.export');
+    Route::post('/animals/{animal}/sell', [AnimalMovementWebController::class, 'sell'])->name('animals.sell');
+    Route::post('/animals/{animal}/die', [AnimalMovementWebController::class, 'die'])->name('animals.die');
+    Route::post('/animals/{animal}/weights', [AnimalWeightRecordWebController::class, 'store'])->name('animals.weights.store');
+    Route::post('/animals/{animal}/vaccinations', [AnimalVaccinationRecordWebController::class, 'store'])->name('animals.vaccinations.store');
+    Route::post('/animals/{animal}/health-records', [AnimalHealthRecordWebController::class, 'store'])->name('animals.health-records.store');
+    Route::post('/animals/{animal}/feed-consumptions', [AnimalFeedConsumptionWebController::class, 'store'])->name('animals.feed-consumptions.store');
+    Route::resource('animals', AnimalWebController::class)->except('destroy');
+
+    Route::get('/reports/livestock', LivestockReportWebController::class)->name('reports.livestock');
+
     Route::get('/inventory', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'inventory'))->name('inventory.index');
     Route::get('/machines', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'machines'))->name('machines.index');
     Route::get('/finance', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'finance'))->name('finance.index');
