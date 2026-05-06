@@ -17,11 +17,18 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FarmMapController;
 use App\Http\Controllers\FarmWebController;
 use App\Http\Controllers\FieldWebController;
+use App\Http\Controllers\FinancialAccountWebController;
+use App\Http\Controllers\FinancialCategoryWebController;
+use App\Http\Controllers\FinancialTransactionWebController;
 use App\Http\Controllers\HarvestWebController;
+use App\Http\Controllers\InventoryItemWebController;
 use App\Http\Controllers\LivestockReportWebController;
+use App\Http\Controllers\MachineWebController;
+use App\Http\Controllers\MaintenanceRecordWebController;
 use App\Http\Controllers\OperationalModuleController;
 use App\Http\Controllers\PastureWebController;
 use App\Http\Controllers\SeasonWebController;
+use App\Http\Controllers\StockMovementWebController;
 use App\Http\Controllers\UnderConstructionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -92,9 +99,30 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
 
     Route::get('/reports/livestock', LivestockReportWebController::class)->name('reports.livestock');
 
-    Route::get('/inventory', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'inventory'))->name('inventory.index');
-    Route::get('/machines', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'machines'))->name('machines.index');
-    Route::get('/finance', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'finance'))->name('finance.index');
+    Route::get('/inventory/export.csv', [InventoryItemWebController::class, 'export'])->name('inventory.export');
+    Route::post('/inventory/{item}/stock-movements', [StockMovementWebController::class, 'store'])->name('inventory.stock-movements.store');
+    Route::resource('inventory', InventoryItemWebController::class)->parameters(['inventory' => 'item']);
+
+    Route::get('/stock-movements', [StockMovementWebController::class, 'index'])->name('stock-movements.index');
+    Route::get('/stock-movements/export.csv', [StockMovementWebController::class, 'export'])->name('stock-movements.export');
+
+    Route::get('/machines/export.csv', [MachineWebController::class, 'export'])->name('machines.export');
+    Route::post('/machines/{machine}/maintenance-records', [MaintenanceRecordWebController::class, 'store'])->name('machines.maintenance-records.store');
+    Route::resource('machines', MachineWebController::class);
+
+    Route::get('/maintenance', [MaintenanceRecordWebController::class, 'index'])->name('maintenance.index');
+    Route::get('/maintenance/export.csv', [MaintenanceRecordWebController::class, 'export'])->name('maintenance.export');
+
+    Route::get('/finance/accounts/export.csv', [FinancialAccountWebController::class, 'export'])->name('finance.accounts.export');
+    Route::resource('finance/accounts', FinancialAccountWebController::class)->names('finance.accounts');
+
+    Route::get('/finance/categories/export.csv', [FinancialCategoryWebController::class, 'export'])->name('finance.categories.export');
+    Route::resource('finance/categories', FinancialCategoryWebController::class)->names('finance.categories');
+
+    Route::get('/finance/transactions/export.csv', [FinancialTransactionWebController::class, 'export'])->name('finance.transactions.export');
+    Route::resource('finance/transactions', FinancialTransactionWebController::class)->only(['index', 'create', 'store'])->names('finance.transactions');
+    Route::redirect('/finance', '/finance/transactions')->name('finance.index');
+
     Route::get('/reports', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'reports'))->name('reports.index');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
