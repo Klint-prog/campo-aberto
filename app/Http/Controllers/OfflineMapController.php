@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Farm;
 use App\Models\OfflineMapPackage;
+use App\Services\GeoJsonService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -11,6 +12,13 @@ use Illuminate\Support\Facades\Storage;
 
 class OfflineMapController extends Controller
 {
+    public function geojson(Request $request, Farm $farm, GeoJsonService $geoJsonService): JsonResponse
+    {
+        $this->authorizeFarm($request, $farm);
+
+        return response()->json($geoJsonService->farmFeatureCollection($farm));
+    }
+
     public function status(Request $request, Farm $farm): JsonResponse
     {
         $this->authorizeFarm($request, $farm);
