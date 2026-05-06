@@ -474,9 +474,15 @@ A versão local permite testar os principais fluxos operacionais da plataforma, 
 ## Créditos
 
 Jhonatas Mendes
+
 Profissional de Infraestrutura e Desenvolvimento de Software - DevOps
 
 Projeto Campo Aberto Tecnologia Rural.
+
+
+```text
+jhonatas.mendes@outlook.com
+```
 
 Repositório:
 
