@@ -1,9 +1,15 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CropVarietyWebController;
+use App\Http\Controllers\CropWebController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FarmMapController;
+use App\Http\Controllers\FarmWebController;
+use App\Http\Controllers\FieldWebController;
 use App\Http\Controllers\OperationalModuleController;
+use App\Http\Controllers\PastureWebController;
+use App\Http\Controllers\SeasonWebController;
 use App\Http\Controllers\UnderConstructionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -28,11 +34,24 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
     Route::get('/map', [OperationalModuleController::class, 'map'])->name('map.index');
     Route::get('/farms/{farm}/map', FarmMapController::class)->name('farms.map');
 
-    Route::get('/farms', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'farms'))->name('farms.index');
-    Route::get('/fields', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'fields'))->name('fields.index');
-    Route::get('/pastures', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'pastures'))->name('pastures.index');
-    Route::get('/crops', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'crops'))->name('crops.index');
-    Route::get('/seasons', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'seasons'))->name('seasons.index');
+    Route::get('/farms/export.csv', [FarmWebController::class, 'export'])->name('farms.export');
+    Route::resource('farms', FarmWebController::class);
+
+    Route::get('/fields/export.csv', [FieldWebController::class, 'export'])->name('fields.export');
+    Route::resource('fields', FieldWebController::class);
+
+    Route::get('/pastures/export.csv', [PastureWebController::class, 'export'])->name('pastures.export');
+    Route::resource('pastures', PastureWebController::class);
+
+    Route::get('/crops/export.csv', [CropWebController::class, 'export'])->name('crops.export');
+    Route::resource('crops', CropWebController::class);
+
+    Route::get('/crop-varieties/export.csv', [CropVarietyWebController::class, 'export'])->name('crop-varieties.export');
+    Route::resource('crop-varieties', CropVarietyWebController::class);
+
+    Route::get('/seasons/export.csv', [SeasonWebController::class, 'export'])->name('seasons.export');
+    Route::resource('seasons', SeasonWebController::class);
+
     Route::get('/activities', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'activities'))->name('activities.index');
     Route::get('/animals', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animals'))->name('animals.index');
     Route::get('/animal-groups', fn (Illuminate\Http\Request $request) => app(OperationalModuleController::class)->index($request, 'animal-groups'))->name('animal-groups.index');
