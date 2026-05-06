@@ -75,8 +75,8 @@ services:
     ports:
       - "8089:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@campoaberto.local
-      PGADMIN_DEFAULT_PASSWORD: campo_aberto
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
