@@ -56,8 +56,8 @@
             <li>Áreas/campos territoriais</li>
             <li>Pontos de interesse</li>
         </ul>
-        <p>Os dados são consumidos do endpoint GeoJSON interno da fazenda e respeitam tenant e autorização de acesso.</p>
-        <p><strong>Endpoint:</strong><br><code>{{ route('api.internal.v1.farms.geojson', $farm) }}</code></p>
+        <p>Os dados são consumidos do endpoint GeoJSON web interno da fazenda e respeitam tenant e autorização de acesso.</p>
+        <p><strong>Endpoint:</strong><br><code>{{ route('farms.map.geojson', $farm) }}</code></p>
         <p><strong>Status offline:</strong><br><span id="offline-status">Verificando pacote offline...</span></p>
         <div class="notice">Use <strong>Online</strong> para navegar pelo mapa base público. Use <strong>Offline</strong> apenas quando existir pacote local completo para esta fazenda.</div>
         <div id="map-error" class="error"></div>
@@ -90,7 +90,7 @@
     const offlineBtn = document.getElementById('offlineMapBtn');
     const storageKey = `campo_aberto_map_mode_${farmId}`;
 
-    const onlineLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const onlineLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         maxNativeZoom: 19,
         updateWhenIdle: true,
@@ -103,6 +103,14 @@
     let offlineAvailable = false;
     let offlineMessage = 'Mapa offline ainda não disponível para esta fazenda.';
     let offlineTileErrors = 0;
+    let onlineTileErrors = 0;
+
+    onlineLayer.on('tileerror', () => {
+        onlineTileErrors++;
+        if (onlineTileErrors >= 3) {
+            mapError.innerText = 'Alguns tiles online não carregaram. Verifique conexão, bloqueio de rede/adblock ou use um pacote offline pronto.';
+        }
+    });
 
     onlineLayer.addTo(map);
 
@@ -153,7 +161,7 @@
         }
     });
 
-    fetch(@json(route('farms.map.offline.status', $farm)))
+    fetch(@json(route('farms.map.offline.status', $farm)), { headers: { 'Accept': 'application/json' } })
         .then(response => response.json())
         .then(({ data }) => {
             offlineAvailable = Boolean(data.available);
@@ -211,9 +219,11 @@
             `Perímetro: ${props.perimeter_m || '-'} m`;
     }
 
-    fetch(@json(route('api.internal.v1.farms.geojson', $farm)))
-        .then(response => {
-            if (!response.ok) throw new Error('Falha ao carregar GeoJSON autorizado.');
+    fetch(@json(route('farms.map.geojson', $farm)), { headers: { 'Accept': 'application/json' } })
+        .then(async response => {
+            const contentType = response.headers.get('content-type') || '';
+            if (!response.ok) throw new Error(`Falha ao carregar GeoJSON autorizado. HTTP ${response.status}`);
+            if (!contentType.includes('application/json')) throw new Error('GeoJSON retornou conteúdo não JSON. Verifique sessão/autenticação da tela.');
             return response.json();
         })
         .then(data => {
