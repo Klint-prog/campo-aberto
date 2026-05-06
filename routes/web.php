@@ -25,6 +25,7 @@ use App\Http\Controllers\InventoryItemWebController;
 use App\Http\Controllers\LivestockReportWebController;
 use App\Http\Controllers\MachineWebController;
 use App\Http\Controllers\MaintenanceRecordWebController;
+use App\Http\Controllers\OfflineMapController;
 use App\Http\Controllers\OperationalModuleController;
 use App\Http\Controllers\PastureWebController;
 use App\Http\Controllers\SeasonWebController;
@@ -52,6 +53,12 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
 
     Route::get('/map', [OperationalModuleController::class, 'map'])->name('map.index');
     Route::get('/farms/{farm}/map', FarmMapController::class)->name('farms.map');
+    Route::get('/farms/{farm}/map/offline/status', [OfflineMapController::class, 'status'])->name('farms.map.offline.status');
+    Route::get('/farms/{farm}/map/offline/tiles/{z}/{x}/{y}', [OfflineMapController::class, 'tile'])
+        ->whereNumber('z')
+        ->whereNumber('x')
+        ->where('y', '[0-9]+\.(png|jpg|jpeg|webp|pbf)')
+        ->name('farms.map.offline.tile');
 
     Route::get('/farms/export.csv', [FarmWebController::class, 'export'])->name('farms.export');
     Route::resource('farms', FarmWebController::class);
