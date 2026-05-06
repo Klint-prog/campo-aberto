@@ -17,7 +17,14 @@
         #map { width: 100%; min-height: calc(100vh - 73px); }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #e8f4e4; color: #123f2a; font-size: 12px; font-weight: bold; }
         .error { margin-top: 12px; color: #8a1f11; }
-        @media (max-width: 800px) { main { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #dde5d8; } #map { min-height: 70vh; } }
+        .map-shell { position: relative; min-height: calc(100vh - 73px); }
+        .map-mode-control { position: absolute; top: 16px; right: 16px; z-index: 1000; background: #fff; border-radius: 12px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); display: flex; gap: 6px; align-items: center; }
+        .map-mode-control button { border: 0; padding: 8px 12px; cursor: pointer; border-radius: 8px; background: #eef2eb; color: #123f2a; font-weight: 700; }
+        .map-mode-control button.active { background: #166534; color: #fff; }
+        .map-mode-control button:disabled { cursor: not-allowed; opacity: .55; }
+        .map-source-indicator { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,.94); border-radius: 10px; padding: 8px 12px; box-shadow: 0 4px 16px rgba(0,0,0,.16); font-size: 13px; color: #123f2a; }
+        .map-source-indicator strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #4a5c50; }
+        @media (max-width: 800px) { main { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #dde5d8; } #map, .map-shell { min-height: 70vh; } }
     </style>
 </head>
 <body>
@@ -39,18 +46,98 @@
         </ul>
         <p>Os dados são consumidos do endpoint GeoJSON interno da fazenda e respeitam tenant e autorização de acesso.</p>
         <p><strong>Endpoint:</strong><br><code>{{ route('api.internal.v1.farms.geojson', $farm) }}</code></p>
+        <p><strong>Status offline:</strong><br><span id="offline-status">Verificando pacote offline...</span></p>
         <div id="map-error" class="error"></div>
     </aside>
-    <div id="map"></div>
+    <section class="map-shell">
+        <div class="map-mode-control" aria-label="Selecionar fonte do mapa">
+            <button type="button" id="onlineMapBtn" class="active">Online</button>
+            <button type="button" id="offlineMapBtn" disabled>Offline</button>
+        </div>
+        <div id="map-source-indicator" class="map-source-indicator">
+            <strong>Fonte do mapa</strong>
+            <span id="map-source-text">Online — OpenStreetMap</span>
+        </div>
+        <div id="map"></div>
+    </section>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
+    const farmId = @json((string) $farm->id);
     const map = L.map('map').setView([-8.05, -34.9], 6);
+    const mapError = document.getElementById('map-error');
+    const offlineStatus = document.getElementById('offline-status');
+    const mapSourceText = document.getElementById('map-source-text');
+    const onlineBtn = document.getElementById('onlineMapBtn');
+    const offlineBtn = document.getElementById('offlineMapBtn');
+    const storageKey = `campo_aberto_map_mode_${farmId}`;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const onlineLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    });
+
+    let offlineLayer = null;
+    let offlineAvailable = false;
+    let offlineMessage = 'Mapa offline ainda não disponível para esta fazenda.';
+
+    onlineLayer.addTo(map);
+
+    function setMapMode(mode) {
+        if (mode === 'offline' && !offlineAvailable) {
+            mapError.innerText = offlineMessage;
+            return;
+        }
+
+        if (mode === 'offline') {
+            if (map.hasLayer(onlineLayer)) map.removeLayer(onlineLayer);
+            if (offlineLayer && !map.hasLayer(offlineLayer)) offlineLayer.addTo(map);
+            offlineBtn.classList.add('active');
+            onlineBtn.classList.remove('active');
+            mapSourceText.innerText = 'Offline — pacote local da fazenda';
+            localStorage.setItem(storageKey, 'offline');
+            return;
+        }
+
+        if (offlineLayer && map.hasLayer(offlineLayer)) map.removeLayer(offlineLayer);
+        if (!map.hasLayer(onlineLayer)) onlineLayer.addTo(map);
+        onlineBtn.classList.add('active');
+        offlineBtn.classList.remove('active');
+        mapSourceText.innerText = 'Online — OpenStreetMap';
+        localStorage.setItem(storageKey, 'online');
+    }
+
+    onlineBtn.addEventListener('click', () => setMapMode('online'));
+    offlineBtn.addEventListener('click', () => setMapMode('offline'));
+
+    window.addEventListener('offline', () => {
+        if (offlineAvailable) {
+            setMapMode('offline');
+        }
+    });
+
+    fetch(@json(route('farms.map.offline.status', $farm)))
+        .then(response => response.json())
+        .then(({ data }) => {
+            offlineAvailable = Boolean(data.available);
+            offlineMessage = data.message;
+            offlineStatus.innerText = data.message;
+            offlineBtn.disabled = !offlineAvailable;
+
+            if (offlineAvailable && data.tile_url_template) {
+                offlineLayer = L.tileLayer(data.tile_url_template, {
+                    maxZoom: data.package?.max_zoom || 18,
+                    minZoom: data.package?.min_zoom || 0,
+                    attribution: 'Mapa offline local'
+                });
+
+                const savedMode = localStorage.getItem(storageKey) || (navigator.onLine ? 'online' : 'offline');
+                setMapMode(savedMode);
+            }
+        })
+        .catch(() => {
+            offlineStatus.innerText = 'Não foi possível verificar o pacote offline.';
+        });
 
     function layerStyle(feature) {
         const layer = feature?.properties?.layer || 'default';
@@ -88,7 +175,7 @@
             }
         })
         .catch(error => {
-            document.getElementById('map-error').innerText = error.message;
+            mapError.innerText = error.message;
         });
 </script>
 </body>
