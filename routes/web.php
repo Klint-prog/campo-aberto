@@ -53,6 +53,7 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
 
     Route::get('/map', [OperationalModuleController::class, 'map'])->name('map.index');
     Route::get('/farms/{farm}/map', FarmMapController::class)->name('farms.map');
+    Route::get('/farms/{farm}/map/geojson', [OfflineMapController::class, 'geojson'])->name('farms.map.geojson');
     Route::get('/farms/{farm}/map/offline/status', [OfflineMapController::class, 'status'])->name('farms.map.offline.status');
     Route::get('/farms/{farm}/map/offline/tiles/{z}/{x}/{y}', [OfflineMapController::class, 'tile'])
         ->whereNumber('z')
@@ -126,7 +127,7 @@ Route::middleware(['auth', 'tenant.scope'])->group(function (): void {
     Route::get('/finance/categories/export.csv', [FinancialCategoryWebController::class, 'export'])->name('finance.categories.export');
     Route::resource('finance/categories', FinancialCategoryWebController::class)->names('finance.categories');
 
-    Route::get('/finance/transactions/export.csv', [FinancialTransactionWebController::class, 'export'])->name('finance.transactions.export');
+    Route::get('/finance/transactions/export.csv', [FinancialTransactionController::class, 'export'])->name('finance.transactions.export');
     Route::resource('finance/transactions', FinancialTransactionWebController::class)->only(['index', 'create', 'store'])->names('finance.transactions');
     Route::redirect('/finance', '/finance/transactions')->name('finance.index');
 
