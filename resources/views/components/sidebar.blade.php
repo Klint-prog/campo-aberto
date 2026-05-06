@@ -22,10 +22,9 @@
             ['Relatório agrícola', route('reports.agriculture'), request()->routeIs('reports.agriculture')],
         ],
         'Pecuária' => [
-            ['Animais', route('animals.index'), request()->routeIs('animals.index')],
-            ['Lotes', route('animal-groups.index'), request()->routeIs('animal-groups.index')],
-            ['Pesagens', route('under-construction', 'animal-weights'), request()->is('under-construction/animal-weights')],
-            ['Sanidade', route('under-construction', 'animal-health'), request()->is('under-construction/animal-health')],
+            ['Animais', route('animals.index'), request()->routeIs('animals.*')],
+            ['Lotes', route('animal-lots.index'), request()->routeIs('animal-lots.*')],
+            ['Relatório pecuário', route('reports.livestock'), request()->routeIs('reports.livestock')],
         ],
         'Operações' => [
             ['Estoque', route('inventory.index'), request()->routeIs('inventory.index')],
