@@ -13,7 +13,6 @@
         header p { margin: 4px 0 0; opacity: .85; }
         main { display: grid; grid-template-columns: 340px minmax(0, 1fr); height: calc(100vh - 76px); min-height: 560px; }
         aside { padding: 20px; background: #fff; border-right: 1px solid #dde5d8; overflow-y: auto; }
-        aside ul { padding-left: 18px; line-height: 1.7; }
         code { overflow-wrap: anywhere; }
         label { display: block; margin-top: 10px; font-size: 12px; font-weight: 700; color: #334155; }
         input, textarea, select { width: 100%; margin-top: 4px; padding: 8px 9px; border: 1px solid #cbd5c6; border-radius: 8px; font: inherit; }
@@ -21,9 +20,10 @@
         .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .nav-link { padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,.12); color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; }
         .badge { padding: 5px 9px; border-radius: 999px; background: #e8f4e4; color: #123f2a; font-size: 12px; font-weight: 700; }
-        .notice { margin-top: 12px; padding: 10px; border-radius: 10px; background: #eef7ec; color: #123f2a; font-size: 13px; line-height: 1.45; }
         .error { margin-top: 12px; color: #8a1f11; line-height: 1.4; }
-        .sidebar-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid #e5eadf; }
+        .sidebar-section { margin-top: 0; padding-top: 0; }
+        .sidebar-section h2 { margin-top: 0; }
+        .sidebar-help { margin: 6px 0 12px; color: #475569; font-size: 13px; line-height: 1.45; }
         .button-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .sidebar-button { border: 0; border-radius: 8px; padding: 8px 10px; cursor: pointer; background: #166534; color: #fff; font-weight: 700; font-size: 13px; }
         .sidebar-button.secondary { background: #e2e8dc; color: #123f2a; }
@@ -62,16 +62,9 @@
 </header>
 <main>
     <aside>
-        <h2>Camadas carregadas</h2>
-        <ul><li>Talhões</li><li>Pastagens</li><li>Áreas/campos territoriais</li><li>Pontos de interesse</li></ul>
-        <p>O mapa abre com uma base local estável e carrega o GeoJSON web interno da fazenda com sessão autenticada.</p>
-        <p><strong>Endpoint:</strong><br><code>{{ route('farms.map.geojson', $farm) }}</code></p>
-        <p><strong>Status offline:</strong><br><span id="offline-status">Verificando pacote offline...</span></p>
-        <div class="notice">A base <strong>Local</strong> sempre funciona. <strong>Online</strong> tenta carregar o mapa público. <strong>Offline</strong> usa pacote local quando existir.</div>
-
         <section class="sidebar-section" aria-labelledby="quick-points-title">
             <h2 id="quick-points-title">Pontos rápidos</h2>
-            <p>Marque locais de acesso rápido no mapa. Estes pontos ficam salvos neste navegador para esta fazenda.</p>
+            <p class="sidebar-help">Marque locais de acesso rápido no mapa. Estes pontos ficam salvos neste navegador para esta fazenda.</p>
             <label for="quickPointName">Nome do ponto</label>
             <input id="quickPointName" type="text" placeholder="Ex.: Porteira principal, curral, bomba d'água">
             <label for="quickPointType">Tipo</label>
@@ -101,6 +94,7 @@
         </section>
 
         <div id="map-error" class="error"></div>
+        <span id="offline-status" hidden>Verificando pacote offline...</span>
     </aside>
     <section class="map-shell">
         <div class="map-mode-control"><button id="localMapBtn" class="active">Local</button><button id="onlineMapBtn">Online</button><button id="offlineMapBtn" disabled>Offline</button></div>
