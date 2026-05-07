@@ -32,10 +32,11 @@ use App\Http\Controllers\SeasonWebController;
 use App\Http\Controllers\StockMovementWebController;
 use App\Http\Controllers\UnderConstructionController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route(Auth::check() ? 'dashboard' : 'login');
 });
 
 Route::middleware('guest')->group(function (): void {
